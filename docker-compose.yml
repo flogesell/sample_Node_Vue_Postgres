@@ -1,0 +1,51 @@
+version: "3"
+
+x-database: &postgres-credentials
+  POSTGRES_USER: admin
+  POSTGRES_PASSWORD: admin
+  POSTGRES_DB: avement
+  POSTGRES_HOST: postgres
+
+services:
+  frontend:
+    container_name: sample_frontend
+    build: ./frontend
+    environment:
+      API_URL: http://backend:4000/
+    ports:
+      - 8080:8080
+    volumes:
+      - ./frontend:/data
+      - /data/node_modules
+
+  backend:
+    container_name: sample_backend
+    build: ./backend
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      SECRET: '1r3jTQUSuKOQEUuT2eiusYpKLLde4kdA'
+      <<: *postgres-credentials
+    ports:
+      - 4000:4000
+    volumes:
+      - ./backend:/data
+      - /data/node_modules
+    depends_on: 
+      - postgres
+  
+  # SQL Shell:
+  # docker-compose exec postgres psql -U admin -d avement 
+  postgres:
+    container_name: sample_postgres
+    image: postgres:13
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      <<: *postgres-credentials
+    ports:
+      - 5432:5432
+    volumes:
+      - sample_postgres_volume:/var/lib/postgresql/data
+
+volumes:
+  sample_postgres_volume:
